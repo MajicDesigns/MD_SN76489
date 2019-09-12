@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['max_5fchannels_34',['MAX_CHANNELS',['../class_m_d___s_n74689.html#ac00f2f246dbd8c1f4b595255a33f292c',1,'MD_SN74689']]]
+  ['invert_61',['invert',['../struct_m_d___s_n76489_1_1adsr_envelope__t.html#ade1feabb99f3ecb9d27f47b3a75f53c4',1,'MD_SN76489::adsrEnvelope_t']]]
 ];

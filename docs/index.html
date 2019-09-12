@@ -93,15 +93,20 @@ $(document).ready(function(){initNavTree('index.html','');});
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><h2>The SN76489 Sound Generator IC </h2>
-<p>This library implements functions that allow manages the interface to the SN76489 and provides a clean interface for applications.</p>
-<p>The library encapsulates the functionality of the SN76489 IC into a few class methods that allow an application to control the IC.</p>
-<p>This work is informed by and borrows from a number of sources:</p><ul>
-<li>On-line IC datasheet at <a href="http://members.casema.nl/hhaydn/howel/parts/76489.htm">http://members.casema.nl/hhaydn/howel/parts/76489.htm</a></li>
-<li>Additional technical information from <a href="http://www.smspower.org/Development/SN76489">http://www.smspower.org/Development/SN76489</a></li>
+<p>The SN76489 Digital Complex Sound Generator (DCSG) is a TTL-compatible programmable sound generator chip from Texas Instruments. It provides:</p><ul>
+<li>3 programmable square wave tone generators (122Hz to 125kHz)</li>
+<li>1 noise generator (white noise and periodic noise at 3 different frequencies)</li>
+<li>16 different volume levels</li>
+<li>Simultaneous sounds</li>
 </ul>
+<p>Its main historical application was the generation of music and sound effects in microprocessor systems. It was extensively used in early game consoles, arcade games and home computers.</p>
+<p>This library implements functions that manage the sound and noise generation interface to the SN76489 IC through an clean API encapsulating the basic functionality provided by the hardware.</p>
+<p>Additionally, the library provides programmable ADSR envelope management of the sounds produced, allowing a more versatile sound output with minimal programming effort.</p>
 <h2>Topics </h2>
 <ul>
-<li><a class="el" href="page_hardware.html">Hardware Connections</a></li>
+<li><a class="el" href="page_hardware.html">SN74689 IC</a></li>
+<li><a class="el" href="page_a_d_s_r.html">ADSR Envelope</a></li>
+<li><a class="el" href="page_compile_switch.html">Compiler Switches</a></li>
 <li><a class="el" href="page_revision_history.html">Revision History</a></li>
 <li><a class="el" href="page_copyright.html">Copyright</a></li>
 <li><a class="el" href="page_donation.html">Support the Library</a> </li>
@@ -112,7 +117,7 @@ $(document).ready(function(){initNavTree('index.html','');});
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Sun Sep 8 2019 19:02:33 for MD_SN76489 Library by
+    <li class="footer">Generated on Thu Sep 12 2019 16:30:05 for MD_SN76489 Library by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.16 </li>
   </ul>

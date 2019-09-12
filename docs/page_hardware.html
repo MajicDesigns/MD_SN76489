@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.16"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>MD_SN76489 Library: Hardware Connections</title>
+<title>MD_SN76489 Library: SN74689 IC</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -89,11 +89,12 @@ $(document).ready(function(){initNavTree('page_hardware.html','');});
 
 <div class="PageDoc"><div class="header">
   <div class="headertitle">
-<div class="title">Hardware Connections </div>  </div>
+<div class="title">SN74689 IC </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><h2>The Hardware </h2>
-<p>The SN76489 uses 8 digital output lines from the Arduino MCU and an additional digital output to set toggle loading the data into the IC.</p>
+<div class="textblock"><h2>IC Hardware </h2>
+<p>The library uses 8 digital output data lines from the Arduino MCU and an additional digital output to load the data into the SN76489 IC.</p>
+<p>If multiple ICs are interfaced, then the ICs CE line must also be used but to select the right device and share the data lines, but this is not managed by the library.</p>
 <pre class="fragment"> D5 -&gt;  1 +-----+ 16 &lt;- Vcc
  D6 -&gt;  2 | S N | 15 &lt;- D4
  D7 -&gt;  3 |  7  | 14 &lt;- CLK
@@ -116,20 +117,34 @@ GND -&gt;  8 +-----+ 9  &lt;- N/C
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">AUD  </td><td class="markdownTableBodyNone">Audio output (headphone jack)   </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">CLK  </td><td class="markdownTableBodyNone">4MHz clock signal*   </td></tr>
+<td class="markdownTableBodyNone">CLK  </td><td class="markdownTableBodyNone">4MHz clock signal (see below)   </td></tr>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">/CE  </td><td class="markdownTableBodyNone">Active low Chip Enable (connect to GND or MCU output if more than one IC shares D0-D7)   </td></tr>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">RDY  </td><td class="markdownTableBodyNone">Ready signal (unused).   </td></tr>
 </table>
-<p>NOTE*: The Arduino MCU may have a timer capable of generating the 4MHz clock. This is a hardware dependent function implemented in the startClock() method. The output is restricted to a processor specific pin which can be connected to the IC CLK input. </p>
+<h2>Tone Generators </h2>
+<p>The frequency of the square waves produced by the tone generators on each channel is derived from two factors:</p><ul>
+<li>The speed of the external clock.</li>
+<li>A value provided in a control register for that channel (called N).</li>
+</ul>
+<p>Each channel's frequency is arrived at by dividing the external clock by 32 and then dividing the result by N. Thus the overall divider range is from 32 to 32768. This gives a frequency range at maximum input clock rate of 122Hz to 125kHz (a range from roughly A2 (two octaves below middle A) to 5-6 times the generally accepted limits of human audio perception).</p>
+<h2>The 4MHz Clock Signal </h2>
+<p>The clock signal may be supplied from external hardware or can be created by the MCU. This can be specified class initializer parameters.</p>
+<p>The MCU may have a timer capable of generating the 4MHz clock. This is a hardware dependent function implemented in the startClock() method. The output is usually restricted to a processor specific pin which can be connected to the IC CLK input. If the MCU clock is not supported by the hardware a compiler error will result - this can be controlled by the setting the CLOCK_GENERATOR define to 0.</p>
+<p>If an external hardware clock is used, then the library can be prevented from starting the MCU clock in the class initialization parameters.</p>
+<h2>References </h2>
+<ul>
+<li>On-line IC datasheet at <a href="http://members.casema.nl/hhaydn/howel/parts/76489.htm">http://members.casema.nl/hhaydn/howel/parts/76489.htm</a></li>
+<li>Additional technical information from <a href="http://www.smspower.org/Development/SN76489">http://www.smspower.org/Development/SN76489</a> </li>
+</ul>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Sun Sep 8 2019 19:02:33 for MD_SN76489 Library by
+    <li class="footer">Generated on Thu Sep 12 2019 16:30:05 for MD_SN76489 Library by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.16 </li>
   </ul>

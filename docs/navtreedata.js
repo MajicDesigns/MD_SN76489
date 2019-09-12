@@ -27,18 +27,26 @@ var NAVTREE =
     [ "Support the Library", "page_donation.html", null ],
     [ "Copyright", "page_copyright.html", null ],
     [ "Revision History", "page_revision_history.html", null ],
-    [ "Hardware Connections", "page_hardware.html", null ],
+    [ "SN74689 IC", "page_hardware.html", null ],
+    [ "ADSR Envelope", "page_a_d_s_r.html", null ],
+    [ "Compiler Switches", "page_compile_switch.html", null ],
     [ "Classes", "annotated.html", [
       [ "Class List", "annotated.html", "annotated_dup" ],
       [ "Class Index", "classes.html", null ],
       [ "Class Members", "functions.html", [
         [ "All", "functions.html", null ],
         [ "Functions", "functions_func.html", null ],
-        [ "Variables", "functions_vars.html", null ]
+        [ "Variables", "functions_vars.html", null ],
+        [ "Enumerations", "functions_enum.html", null ],
+        [ "Enumerator", "functions_eval.html", null ]
       ] ]
     ] ],
     [ "Files", "files.html", [
-      [ "File List", "files.html", "files_dup" ]
+      [ "File List", "files.html", "files_dup" ],
+      [ "File Members", "globals.html", [
+        [ "All", "globals.html", null ],
+        [ "Macros", "globals_defs.html", null ]
+      ] ]
     ] ]
   ] ]
 ];

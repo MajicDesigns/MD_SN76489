@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['copyright_40',['Copyright',['../page_copyright.html',1,'']]]
+  ['adsr_20envelope_84',['ADSR Envelope',['../page_a_d_s_r.html',1,'']]]
 ];

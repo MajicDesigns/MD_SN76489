@@ -1,7 +1,5 @@
 var _m_d___s_n76489_8cpp =
 [
-    [ "CLOCK_GENERATOR", "_m_d___s_n76489_8cpp.html#ad551bde12de1a0db32a5db69f41b3e4f", null ],
-    [ "CLOCK_PIN", "_m_d___s_n76489_8cpp.html#a23b348310475af5d6544794f1a167ee8", null ],
     [ "DEBUG", "_m_d___s_n76489_8cpp.html#a3254550e1d6d185f6b3e69b2d6468343", null ],
     [ "DEBUGS", "_m_d___s_n76489_8cpp.html#a6e433650f8ed73f5f8e3514684d38e05", null ],
     [ "DEBUGX", "_m_d___s_n76489_8cpp.html#a5b50c5353404d728bd9e368f0fc1d7c7", null ],
