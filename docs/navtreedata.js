@@ -27,7 +27,8 @@ var NAVTREE =
     [ "Support the Library", "page_donation.html", null ],
     [ "Copyright", "page_copyright.html", null ],
     [ "Revision History", "page_revision_history.html", null ],
-    [ "SN74689 IC", "page_hardware.html", null ],
+    [ "Hardware Connections", "page_hardware.html", null ],
+    [ "Using the Library", "page_library.html", null ],
     [ "ADSR Envelope", "page_a_d_s_r.html", null ],
     [ "Compiler Switches", "page_compile_switch.html", null ],
     [ "Classes", "annotated.html", [

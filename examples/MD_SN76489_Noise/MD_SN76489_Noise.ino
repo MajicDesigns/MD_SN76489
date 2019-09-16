@@ -1,7 +1,7 @@
 // MD_SN74689 Library example program.
 //
 // Tests noise playing functions of the library.
-// Adds in frequecy to channel 2 for *_3 noise option.
+// Adds in frequency to channel 2 for *_3 noise option.
 //
 
 #include <MD_SN76489.h>

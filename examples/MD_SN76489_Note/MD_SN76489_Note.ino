@@ -3,7 +3,7 @@
 // Tests tone/note playing functions of the library.
 // Plays MIDI notes 0-127 in sequence over and over again.
 //
-// Library Dependecies
+// Library Dependencies
 // MusicTable library located at https://github.com/MajicDesigns/MD_MusicTable
 //
 
@@ -54,7 +54,7 @@ void loop(void)
       break;
 
     case NOTE_ON:  // play the next MIDI note
-      if (T.findId(noteId));
+      if (T.findId(noteId))
       {
         uint16_t f = (uint16_t)(T.getFrequency() + 0.5);  // round it up
         char buf[10];

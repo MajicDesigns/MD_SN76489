@@ -31,7 +31,7 @@
   <td id="projectlogo"><img alt="Logo" src="MajicDesigns_Logo.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">MD_SN76489 Library
-   &#160;<span id="projectnumber">0.1</span>
+   &#160;<span id="projectnumber">1.0</span>
    </div>
    <div id="projectbrief">Library for SN76489 sound generator</div>
   </td>
@@ -93,7 +93,7 @@ $(document).ready(function(){initNavTree('page_a_d_s_r.html','');});
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><h2>Attack, Decay, Sustain, Release (ADSR) Envelope </h2>
-<p>An ADSR generated sound envelope is a component of many synthesizers and other electronic musical instruments. The dound envelope modulates the sound, often its loudness, over time. In this library the envelope is implemented in software to control the volume of the sound.</p>
+<p>An ADSR generated sound envelope is a component of many synthesizers and other electronic musical instruments. The sound envelope modulates the sound, often its loudness, over time. In this library the envelope is implemented in software to control the volume of the sound.</p>
 <div class="image">
 <img src="ADSR_Envelope.png" alt=""/>
 <div class="caption">
@@ -106,7 +106,7 @@ ADSR Envelope</div></div>
 <li><b>Release</b>: The time interval (Tr) for the sound to fade from Vs to 0 when a note ends.</li>
 </ul>
 <p>An ADSR note cycle is controlled by 2 events - an <em>note on</em> event that triggers the attack phase of the cycle and a <em>note off</em> event that triggers the release phase of the cycle. On a keyboard instrument these would correspond to a key being pressed and then released.</p>
-<p>The library initially defines supplies one default ADSR envelope for all channels. These can be changed per channel in real time using the setADSR() method to specifiy the new envelope parameters. The nomenclature for the parameters follows the labels and explanation above. A flag can be set to invert the specified envelope.</p>
+<p>The library initially defines supplies one default ADSR envelope for all channels. These can be changed per channel in real time using the setADSR() method to specify the new envelope parameters. The nomenclature for the parameters follows the labels and explanation above. A flag can be set to invert the specified envelope.</p>
 <p>The SN74689 volume controls are limited to 15 steps, so the Attack, Decay or Release phases are implemented as a linear progression changing the sound volume over time. </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
@@ -114,7 +114,7 @@ ADSR Envelope</div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Sep 12 2019 16:30:05 for MD_SN76489 Library by
+    <li class="footer">Generated on Sat Sep 14 2019 13:39:15 for MD_SN76489 Library by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.16 </li>
   </ul>

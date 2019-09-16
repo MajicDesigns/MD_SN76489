@@ -7,13 +7,13 @@
 // RTTTL format definition https://en.wikipedia.org/wiki/Ring_Tone_Transfer_Language
 // Lots of RTTTL files at http://www.picaxe.com/RTTTL-Ringtones-for-Tune-Command/
 //
-// Library Dependecies
+// Library Dependencies
 // MusicTable library located at https://github.com/MajicDesigns/MD_MusicTable
 //
 
 #include <MD_SN76489.h>
 #include <MD_MusicTable.h>          // MIDI notes information
-#include "MD_SN76489_RTTL_Player.h" // RTTL song data in a separet file
+#include "MD_SN76489_RTTTL_Player.h" // RTTL song data in a separate file
 
 #define DEBUG 0
 

@@ -33,11 +33,17 @@ produced, allowing a more versatile sound output with minimal programming effort
 Topics
 ------
 - \subpage pageHardware
+- \subpage pageLibrary
 - \subpage pageADSR
 - \subpage pageCompileSwitch
 - \subpage pageRevisionHistory
 - \subpage pageCopyright
 - \subpage pageDonation
+
+References
+----------
+- On-line IC datasheet at http://members.casema.nl/hhaydn/howel/parts/76489.htm
+- Additional technical information from http://www.smspower.org/Development/SN76489
 
 \page pageDonation Support the Library
 If you like and use this library please consider making a small donation 
@@ -61,10 +67,10 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 \page pageRevisionHistory Revision History
-Sep 2019 version 0.1.0
+Sep 2019 version 1.0.0
 - Initial implementation.
 
-\page pageHardware SN74689 IC
+\page pageHardware Hardware Connections
 IC Hardware
 -----------
 
@@ -99,8 +105,8 @@ managed by the library.
 
 Tone Generators
 ---------------
-The frequency of the square waves produced by the tone generators on each channel 
-is derived from two factors:
+The frequency of the square waves produced by the tone generators on
+each channel is derived from two factors:
 - The speed of the external clock.
 - A value provided in a control register for that channel (called N).
 
@@ -112,28 +118,72 @@ the generally accepted limits of human audio perception).
 
 The 4MHz Clock Signal
 ---------------------
-The clock signal may be supplied from external hardware or can be created by the MCU. This can 
-be specified class initializer parameters.
+The clock signal may be supplied from external hardware or can be created by the 
+MCU. This can be specified class initializer parameters.
 
 The MCU may have a timer capable of generating the 4MHz clock. This is a hardware
-dependent function implemented in the startClock() method. The output is usually restricted
-to a processor specific pin which can be connected to the IC CLK input. If the MCU clock is not
-supported by the hardware a compiler error will result - this can be controlled by the setting 
-the CLOCK_GENERATOR define to 0.
+dependent function implemented in the startClock() method. The output is usually 
+restricted to a processor specific pin which can be connected to the IC CLK input.
+If the MCU clock is not supported by the hardware a compiler error will result - 
+this can be controlled by the setting the CLOCK_GENERATOR define to 0 (see 
+\ref pageCompileSwitch).
 
-If an external hardware clock is used, then the library can be prevented from starting the MCU 
-clock in the class initialization parameters.
+If an external hardware clock is used, then the library can be prevented from 
+starting the MCU clock in the class initialization parameters.
 
-References
-----------
-- On-line IC datasheet at http://members.casema.nl/hhaydn/howel/parts/76489.htm
-- Additional technical information from http://www.smspower.org/Development/SN76489
+\page pageLibrary Using the Library
+Defining the object
+-------------------
+The object definition must include a list of all the I/O pins that are used
+to connect the MCU to the SN76489 IC. The D array parameter has pin numbers
+is arranged to correspond to the IC pins (ie, pin D[0] is connected to IC pin 
+D0, D[1] to D1, etc). The WE pin can be any arbitrary pin.
+
+Setup()
+-------
+The setup() function must include the begin() method. All the I/O pins are
+initialized at this time.
+
+Loop()
+------
+ADSR envelopes and/or automatic note off events (see below) are managed by the
+library. For this to happen in a timely manner, the loop() function must invoke
+play() every iteration through loop(). The play() method executes very quickly 
+if the library has nothing to process, imposing minimal overheads on the user
+application.
+
+Playing a Note
+--------------
+A note starts with the note on event and ends with a note off event. If an ADSR
+envelope is active, the Release phase starts at the note off event. The note on
+event is generated when the note(), tone() or noise() method is invoked in the
+application code.
+
+Note On and Off Events
+--------------------
+The library provides flexibility on how the note on and note off events are
+generated.
+
+Invoking the tone(), note() or noise() methods without a duration parameter 
+requires the user code to generate the note off using the appropriate means
+explained in the specific method reference. This method is suited to applications
+that directly link a physical event to playing the note (eg, switch on for note on
+and switch off for note off), or where the music being played includes its own
+note on and off events (eg, a MIDI score).
+
+Invoking the the tone(), note() or noise() methods with a duration parameter
+causes the library to generate a note off event at the end of when the specified
+total duration. If an ADSR envelope is active, the note duration encompasses
+the time between initial Attack phase (note on) to the end of the Release phase.
+This method suits applications where the sound duration is defined by the music 
+being played (eg, RTTTL or MML tunes). In this case the user code can determine
+if the sound has completed playing by using the isIdle() method.
 
 \page pageADSR ADSR Envelope
 Attack, Decay, Sustain, Release (ADSR) Envelope
 -----------------------------------------------
 An ADSR generated sound envelope is a component of many synthesizers and other electronic musical 
-instruments. The dound envelope modulates the sound, often its loudness, over time. 
+instruments. The sound envelope modulates the sound, often its loudness, over time. 
 In this library the envelope is implemented in software to control the volume of the sound.
 
 ![ADSR Envelope] (ADSR_Envelope.png "ADSR Envelope")
@@ -154,7 +204,7 @@ phase of the cycle and a *note off* event that triggers the release phase of the
 a keyboard instrument these would correspond to a key being pressed and then released.
 
 The library initially defines supplies one default ADSR envelope for all channels. These 
-can be changed per channel in real time using the setADSR() method to specifiy the new 
+can be changed per channel in real time using the setADSR() method to specify the new 
 envelope parameters. The nomenclature for the parameters follows the labels and explanation 
 above. A flag can be set to invert the specified envelope.
 
@@ -207,7 +257,7 @@ class MD_SN76489
       WHITE_1    = 0x5, ///< White noise, output/1024
       WHITE_2    = 0x6, ///< White noise, output/2048
       WHITE_3    = 0x7, ///< White noise, output/(Channel 2 freq)
-      NOISE_OFF  = 0xf, ///< Special indicator to turn noise off
+      NOISE_OFF  = 0xf, ///< Special indicator to turn noise off if not timed
     } noiseType_t;
 
    /**
@@ -392,7 +442,8 @@ class MD_SN76489
     *
     * Sets the ADSR envelope for a channel. The envelope is defined in a structure
     * of type adsrEnvelope_t. The envelope definition is not copied and must remain 
-    * in scope while it is in use.
+    * in scope while it is in use. The application may change elements of the 
+    * envelope defintion and they will be immediately reflected in sound output.
     *
     * A null pointer changes the ADSR definition back to the library default. The 
     * ADSR profile cannot be changed while it is in use (ie, channel not idle).
@@ -408,7 +459,9 @@ class MD_SN76489
    /**
     * Set the same ADSR envelope for all channels.
     *
-    * Sets the same ADSR envelope for all channels.
+    * Sets the same ADSR envelope for all channels by passing in an application 
+    * copy of the envelope definition. The application may change values in the 
+    * envelope and they will be immediately reflected in the sound.
     *
     * \sa setADSR()
     *

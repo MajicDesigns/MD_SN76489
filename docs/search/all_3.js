@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['invert_7',['invert',['../struct_m_d___s_n76489_1_1adsr_envelope__t.html#ade1feabb99f3ecb9d27f47b3a75f53c4',1,'MD_SN76489::adsrEnvelope_t']]],
-  ['isidle_8',['isIdle',['../class_m_d___s_n76489.html#a61741484c17b3dc9b54cfd885dcafda6',1,'MD_SN76489']]]
+  ['hardware_20connections_7',['Hardware Connections',['../page_hardware.html',1,'']]]
 ];

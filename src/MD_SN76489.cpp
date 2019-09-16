@@ -31,9 +31,9 @@ MD_SN76489::MD_SN76489(const uint8_t *D, uint8_t WE, bool clock):
   _adsrDefault.invert = false;    // Normal non-inverted curve
   _adsrDefault.Vmax = VOL_MAX;    // Attack volume setting
   _adsrDefault.Vs = VOL_MAX-3;    // Sustain volume setting
-  _adsrDefault.Ta = 20;           // Time for attack curve to reach Vmax
-  _adsrDefault.Td = 30;           // Time for decay curve to reach Vs
-  _adsrDefault.Tr = 50;           // Time for Release curve to reach 0 volume
+  _adsrDefault.Ta = 40;           // Time for attack curve to reach Vmax
+  _adsrDefault.Td = 60;           // Time for decay curve to reach Vs
+  _adsrDefault.Tr = 75;           // Time for Release curve to reach 0 volume
 }
 
 MD_SN76489::~MD_SN76489(void)
@@ -430,6 +430,23 @@ void MD_SN76489::startClock(void)
     TCCR1B = 0x19;  // 00011001
     OCR1A = 1;
 #elif defined(ARDUINO_AVR_UNO)
+  /*
+  Using Timer2, creates a 4Mhz PWM signal 50% duty cycle on pin 3 of Arduino Uno.
+
+  TCCR2A register is set to 0010 0011, and
+  TCCR2B register is set to 0000 1001. 
+  OCR2A = 3: The counter will start over at 3. So it'll count 0, 1, 2, 3, 0, 1, ...
+  OCR2B = 1: Pin3 will toggle off at 1, and toggle back on at 0.
+ 
+  This tells the chip to:
+   Enable Fast PWM Mode.
+   When the counter equals OCR2A, start over from 0.
+   When the counter equals OCR2B, set pin3 to 0; when the counter equals 0, set OCR2B to 1.
+   Don't scale the clock signal (keep it at 16 MHz.
+   
+  Since the pin makes a complete cycle every four clock ticks, the resulting 
+  PWM frequency is 4 MHz.
+  */
   #define CLOCK_PIN 3
   // Make pin 3 be a 4MHz signal.
   pinMode(CLOCK_PIN, OUTPUT);
