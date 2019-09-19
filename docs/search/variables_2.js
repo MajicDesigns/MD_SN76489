@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['noise_5fchannel_64',['NOISE_CHANNEL',['../class_m_d___s_n76489.html#a470ebeba3c1f5bff498ccfd42a2911c7',1,'MD_SN76489']]]
+  ['max_5fchannels_76',['MAX_CHANNELS',['../class_m_d___s_n76489.html#a15b806ee4295fbb3201bd5047849f978',1,'MD_SN76489']]]
 ];

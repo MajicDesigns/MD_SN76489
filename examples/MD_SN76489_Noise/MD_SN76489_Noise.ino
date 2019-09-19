@@ -6,6 +6,9 @@
 
 #include <MD_SN76489.h>
 
+// Testing options
+#define DURATION_IN_CALL 0 // 1 = duration in function call, 0 = duration managed by application
+
 // Hardware Definitions ---------------
 // All the pins connected to D0-D7 on the IC, in sequential order 
 // so that pin D_PIN[0] is connected to D0, D_PIN[1] to D1, etc.
@@ -30,7 +33,12 @@ void loop(void)
 {
   // Timing constants
   const uint16_t PAUSE_TIME = 300;  // pause between note in ms
-  const uint16_t PLAY_TIME  = 750;  // nose playing time in ms
+#if DURATION_IN_CALL
+  const uint16_t PLAY_TIME  = 750;  // noise playing time in ms
+#else
+  const uint16_t PLAY_TIME = 0;     // playing time managed by application
+  const uint16_t WAIT_TIME = 750;
+#endif
 
   // Noise cycle
   MD_SN76489::noiseType_t N[] =
@@ -42,7 +50,7 @@ void loop(void)
   };
 
   // Note on/off FSM variables
-  static enum { PAUSE, NOTE_ON, NOTE_OFF } state = PAUSE; // current state
+  static enum { PAUSE, NOTE_ON, WAIT_FOR_TIME, NOTE_OFF } state = PAUSE; // current state
   static uint32_t timeStart = 0;  // millis() timing marker
 
   static uint8_t idxNoise = 0;
@@ -62,7 +70,7 @@ void loop(void)
 
     case NOTE_ON:  // play the next noise setting
     {
-      S.noise(N[idxNoise]);
+      S.noise(N[idxNoise], MD_SN76489::VOL_MAX, PLAY_TIME);
       Serial.print(idxNoise);
 
       // move to next noise cyle value
@@ -71,18 +79,34 @@ void loop(void)
 
       // set up the timer for next state
       timeStart = millis();
+#if DURATION_IN_CALL
       state = NOTE_OFF;
+#else
+      state = WAIT_FOR_TIME;
+#endif
     }
+    break;
+
+    case WAIT_FOR_TIME:
+#if !DURATION_IN_CALL
+    {
+      if (millis() - timeStart >= WAIT_TIME)
+      {
+        S.noise(MD_SN76489::NOISE_OFF, MD_SN76489::VOL_OFF);
+        timeStart = millis();
+        state = NOTE_OFF;
+      }
+    }
+#endif
     break;
 
     case NOTE_OFF:  // wait for time to turn the note off
     {
-      if (millis() - timeStart >= PLAY_TIME)
+      if (S.isIdle(MD_SN76489::NOISE_CHANNEL))
       {
-        S.noise(MD_SN76489::NOISE_OFF);
         timeStart = millis();
         state = PAUSE;
-      }    
+      }
     }
     break;
   }

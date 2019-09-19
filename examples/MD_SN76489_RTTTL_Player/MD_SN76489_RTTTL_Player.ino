@@ -33,11 +33,17 @@
 // All the pins connected to D0-D7 on the IC, in sequential order 
 // so that pin D_PIN[0] is connected to D0, D_PIN[1] to D1, etc.
 const uint8_t D_PIN[] = { A0, A1, A2, A3, 4, 5, 6, 7 };
+
+const uint8_t LD_PIN = 10;
+const uint8_t DAT_PIN = 11;
+const uint8_t CLK_PIN = 13;
+
 const uint8_t WE_PIN = 8;     // Arduino pin connected to the IC WE pin
 const uint8_t PLAY_CHAN = 1;  // Channel being exercised
 
 // Global Data ------------------------
-MD_SN76489 S(D_PIN, WE_PIN, true);
+//MD_SN76489_Direct S(D_PIN, WE_PIN, true);
+MD_SN76489_SPI S(LD_PIN, DAT_PIN, CLK_PIN, WE_PIN, true);
 MD_MusicTable T;
 
 // values for the current RTTL string
@@ -223,7 +229,7 @@ void loop(void)
   // Note on/off FSM variables
   const uint16_t PAUSE_TIME = 1500;  // pause time between melodies
 
-  static enum { IDLE, PLAYING, NOTE_ON, PAUSE, WAIT } state = IDLE; // current state
+  static enum { IDLE, PLAYING, PAUSE, WAIT_FOR_CHAN, WAIT_BETWEEN } state = IDLE; // current state
   static uint32_t timeStart = 0;    // millis() timing marker
   static uint8_t midiNote;          // next MIDI note to play
   static uint16_t playDuration;     // note duration
@@ -235,6 +241,7 @@ void loop(void)
   switch (state)
   {
     case IDLE: // starting a new melody
+      PRINTS("\n-->IDLE");
       setBuffer(songTable[idxTable]);
       // set up for next song
       idxTable++;
@@ -245,18 +252,13 @@ void loop(void)
       state = PLAYING;
       break;
 
-    case PLAYING:     // playing a melody - get a note
-      if (S.isIdle(PLAY_CHAN))
-      {
-        nextRTTLNote(midiNote, playDuration);
-        state = NOTE_ON;
-      }
-      break;
-
-    case NOTE_ON:  // play the next MIDI note
+    case PLAYING:     // playing a melody - get next note
+      PRINTS("\n-->PLAYING");
+      nextRTTLNote(midiNote, playDuration);
       if (midiNote == 0)     // this is just a pause
       {
         timeStart = millis();
+        PRINTS("\n-->PLAYING to PAUSE");
         state = PAUSE;
       }
       else
@@ -270,22 +272,33 @@ void loop(void)
 
           PRINT("\nNOTE_ON ", T.getName(buf, sizeof(buf)));
           PRINT(" @ ", f);
-          PRINTS("Hz");
-          S.note(PLAY_CHAN, f, playDuration);
+          PRINT("Hz for ", playDuration);
+          PRINTS("ms");
+          S.note(PLAY_CHAN, f, MD_SN76489::VOL_MAX, playDuration);
         }
+        PRINTS("\n-->PLAYING to WAIT_FOR_CHAN");
+        state = WAIT_FOR_CHAN;
       }
-
-      // set up the timer for next state
-      timeStart = millis();
-      state = isEoln() ? WAIT : PLAYING;
       break;
 
     case PAUSE:  // pause note during melody
       if (millis() - timeStart >= playDuration)
+      {
+        PRINTS("\n-->PAUSE to PLAYING");
         state = PLAYING;   // start a new melody
+      }
       break;
 
-    case WAIT:  // wait at the end of a melody
+    case WAIT_FOR_CHAN: // wait for the channel to be idle
+      if (S.isIdle(PLAY_CHAN))
+      {
+        PRINTS("\n-->WAIT_FOR_CHAN to NEXT STATE");
+        timeStart = millis();
+        state = isEoln() ? WAIT_BETWEEN : PLAYING;
+      }
+      break;
+
+    case WAIT_BETWEEN:  // wait at the end of a melody
       if (millis() - timeStart >= PAUSE_TIME)
         state = IDLE;   // start a new melody
       break;

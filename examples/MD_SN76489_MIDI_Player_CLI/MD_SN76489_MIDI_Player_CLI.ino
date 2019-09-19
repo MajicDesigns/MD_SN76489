@@ -34,7 +34,7 @@ MD_MIDIFile SMF;
 MD_SN76489 S(D_PIN, WE_PIN, true);
 MD_MusicTable T;
 
-bool printMidiStream = true;   // flag to print the real time midi stream
+bool printMidiStream = false;   // flag to print the real time midi stream
 char rcvBuf[RCV_BUF_SIZE];  // buffer for characters received from the console
 
 struct channelData
@@ -75,6 +75,59 @@ int8_t findFreeChan(void)
   return(c);
 }
 
+void noteOff(uint8_t track, uint8_t chan, uint8_t note)
+{
+  int8_t c;
+
+  c = findChan(track, chan, note);
+  if (c != -1)
+  {
+    S.note(c, 0, MD_SN76489::VOL_OFF);
+    S.setVolume(c, MD_SN76489::VOL_OFF);
+    if (printMidiStream)
+    {
+      Serial.print(F(" -> NOTE OFF C"));
+      Serial.print(c);
+    }
+  }
+}
+
+void noteOn(uint8_t track, uint8_t chan, uint8_t note, uint8_t vol)
+{
+  int8_t c;
+
+  c = findFreeChan();
+
+  if (c != -1)
+  {
+    if (T.findId(note))
+    {
+      uint8_t v = map(vol, 0, 0x7f, 0, 0xf);
+      uint16_t f = (uint16_t)(T.getFrequency() + 0.5);  // round it up
+      char buf[10];
+
+      S.note(c, f, v);
+      chanData[c].idle = false;
+      chanData[c].chan = chan;
+      chanData[c].track = track;
+      chanData[c].note = note;
+      if (printMidiStream)
+      {
+        Serial.print(F(" -> NOTE ON C"));
+        Serial.print(c);
+        Serial.print(F(" ["));
+        Serial.print(T.getId());
+        Serial.print(F("] "));
+        Serial.print(T.getName(buf, sizeof(buf)));
+        Serial.print(F(" @ "));
+        Serial.print(f);
+        Serial.print(F("Hz V"));
+        Serial.print(v);
+      }
+    }
+  }
+}
+
 void midiCallback(midi_event* pev)
 // Called by the MIDIFile library when a file event needs to be processed
 // thru the midi communications interface.
@@ -88,8 +141,6 @@ void midiCallback(midi_event* pev)
 //  uint8_t data[4];  ///< the data. Only 'size' bytes are valid
 //} midi_event;
 {
-  int8_t c;
-
   // Print the data if enabled
   if (printMidiStream)
   {
@@ -111,62 +162,14 @@ void midiCallback(midi_event* pev)
   switch (pev->data[0])
   {
   case 0x80:  // Note off
-    c = findChan(pev->track, pev->channel, pev->data[1]);
-    if (c == -1) break;
-
-    S.note(c, 0);
-    if (printMidiStream) 
-    {
-      Serial.print(F(" -> NOTE OFF C")); 
-      Serial.print(c);
-    }
+    noteOff(pev->track, pev->channel, pev->data[1]);
     break;
 
   case 0x90:  // Note on
     if (pev->data[2] == 0)    // velocity == 0 -> note off
-    {
-      c = findChan(pev->track, pev->channel, pev->data[1]);
-      if (c == -1) break;
-
-      S.note(c, 0);
-      if (printMidiStream)
-      {
-        Serial.print(F(" -> NOTE OFF C"));
-        Serial.print(c);
-      }
-    }
+      noteOff(pev->track, pev->channel, pev->data[1]);
     else
-    {
-      c = findFreeChan();
-      if (c == -1) break;
-
-      if (T.findId(pev->data[1]))
-      {
-        uint8_t v = map(pev->data[2], 0, 0x7f, 0, 0xf);
-        uint16_t f = (uint16_t)(T.getFrequency() + 0.5);  // round it up
-        char buf[10];
-        
-        S.setVolume(c, v);
-        S.note(c, f);
-        chanData[c].idle = false;
-        chanData[c].chan = pev->channel;
-        chanData[c].track = pev->track;
-        chanData[c].note = pev->data[1];
-        if (printMidiStream)
-        {
-          Serial.print(F(" -> NOTE ON C"));
-          Serial.print(c);
-          Serial.print(F(" ["));
-          Serial.print(T.getId());
-          Serial.print(F("] "));
-          Serial.print(T.getName(buf, sizeof(buf)));
-          Serial.print(F(" @ "));
-          Serial.print(f);
-          Serial.print(F("Hz V"));
-          Serial.print(v);
-        }
-      }
-    }
+      noteOn(pev->track, pev->channel, pev->data[1], pev->data[2]);
     break;
   }
 }

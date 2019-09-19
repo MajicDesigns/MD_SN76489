@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['noise_53',['noise',['../class_m_d___s_n76489.html#ae35921138164c937905e6f82c9123da6',1,'MD_SN76489']]],
-  ['note_54',['note',['../class_m_d___s_n76489.html#aa31fcca7f4b920d2a6e17c0771bb6ac8',1,'MD_SN76489']]]
+  ['noise_63',['noise',['../class_m_d___s_n76489.html#a5e1bfa8c2b1fe43c8bbe55b528312524',1,'MD_SN76489']]],
+  ['note_64',['note',['../class_m_d___s_n76489.html#a5ae0594648ea60fc04a82cefce882266',1,'MD_SN76489']]]
 ];
