@@ -26,7 +26,7 @@ microprocessor systems. It was extensively used in early game consoles, arcade g
 and home computers.
 
 This library implements functions that manage the sound and noise generation interface
-to the SN76489 IC through an clean API encapsulating the basic functionality provided
+to the SN76489 IC through a clean API encapsulating the basic functionality provided
 by the hardware.
 
 Additionally, the library provides programmable ADSR envelope management of the sounds
