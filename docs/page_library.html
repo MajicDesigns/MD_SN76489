@@ -93,24 +93,24 @@ $(document).ready(function(){initNavTree('page_library.html','');});
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><h2>Defining the object </h2>
-<p>The object definition must include a list of all the I/O pins that are used to connect the MCU to the SN76489 IC. The D array parameter has pin numbers is arranged to correspond to the IC pins (ie, pin D[0] is connected to IC pin D0, D[1] to D1, etc). The WE pin can be any arbitrary pin.</p>
-<h2>Setup() </h2>
+<p>The object definition include a list of all the I/O pins that are used to connect the MCU to the SN76489 IC.</p>
+<h2>setup() </h2>
 <p>The setup() function must include the begin() method. All the I/O pins are initialized at this time.</p>
-<h2>Loop() </h2>
+<h2>loop() </h2>
 <p>ADSR envelopes and/or automatic note off events (see below) are managed by the library. For this to happen in a timely manner, the loop() function must invoke play() every iteration through loop(). The play() method executes very quickly if the library has nothing to process, imposing minimal overheads on the user application.</p>
 <h2>Playing a Note </h2>
-<p>A note starts with the note on event and ends with a note off event. If an ADSR envelope is active, the Release phase starts at the note off event. The note on event is generated when the note(), tone() or noise() method is invoked in the application code.</p>
+<p>A note starts with the <b>note on</b> event and ends with a <b>note off</b> event. If an ADSR envelope is active, the Release phase starts at the note off event. The note on event is generated when the note(), tone() or noise() method is invoked in the application code.</p>
 <h2>Note On and Off Events </h2>
 <p>The library provides flexibility on how the note on and note off events are generated.</p>
-<p>Invoking the tone(), note() or noise() methods without a duration parameter requires the user code to generate the note off using the appropriate means explained in the specific method reference. This method is suited to applications that directly link a physical event to playing the note (eg, switch on for note on and switch off for note off), or where the music being played includes its own note on and off events (eg, a MIDI score).</p>
-<p>Invoking the the tone(), note() or noise() methods with a duration parameter causes the library to generate a note off event at the end of when the specified total duration. If an ADSR envelope is active, the note duration encompasses the time between initial Attack phase (note on) to the end of the Release phase. This method suits applications where the sound duration is defined by the music being played (eg, RTTTL or MML tunes). In this case the user code can determine if the sound has completed playing by using the isIdle() method. </p>
+<p>Invoking the tone(), note() or noise() methods <b>without a duration parameter</b> means the user code needs to generate the note off (this depends on the channel type and is explained in the specific method reference). This method is suited to applications that directly link a physical event to playing the note (eg, switch on for note on and switch off for note off), or where the music being played includes its own note on and off events (eg, a MIDI score).</p>
+<p>Invoking the the tone(), note() or noise() methods <b>with a duration parameter</b> causes the library to generate a note off event at the end of the specified total duration. If an ADSR envelope is active, the note duration encompasses the time between initial Attack phase (note on) to the end of the Release phase (ie, the Sustain time is calculated from the given duration). This method suits applications where the sound duration is defined by the music being played (eg, RTTTL tunes). In this case the user code can determine if the sound has completed playing by using the isIdle() method. </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Sep 19 2019 15:49:20 for MD_SN76489 Library by
+    <li class="footer">Generated on Fri Sep 20 2019 12:04:46 for MD_SN76489 Library by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.16 </li>
   </ul>

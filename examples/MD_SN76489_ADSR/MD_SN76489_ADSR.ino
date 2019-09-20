@@ -10,10 +10,23 @@
 #include <MD_SN76489.h>
 #include <MD_MusicTable.h>
 
+// Define if we are using a direct or SPI interface to the sound IC
+// 1 = use direct, 0 = use SPI
+#ifndef USE_DIRECT
+#define USE_DIRECT 1
+#endif
+
 // Hardware Definitions ---------------
-// All the pins connected to D0-D7 on the IC, in sequential order 
+#if USE_DIRECT
+// All the pins directly connected to D0-D7 on the IC, in sequential order 
 // so that pin D_PIN[0] is connected to D0, D_PIN[1] to D1, etc.
 const uint8_t D_PIN[] = { A0, A1, A2, A3, 4, 5, 6, 7 };
+#else
+// Define the SPI related pins
+const uint8_t LD_PIN = 10;
+const uint8_t DAT_PIN = 11;
+const uint8_t CLK_PIN = 13;
+#endif
 const uint8_t WE_PIN = 8;     // Arduino pin connected to the IC WE pin
 
 // Miscellaneous
@@ -21,12 +34,18 @@ const uint8_t RCV_BUF_SIZE = 50;      // UI character buffer size
 void(*hwReset) (void) = 0;            // declare reset function @ address 0
 
 // Global Data ------------------------
-MD_SN76489 S(D_PIN, WE_PIN, true);
+#if USE_DIRECT
+MD_SN76489_Direct S(D_PIN, WE_PIN, true);
+#else
+MD_SN76489_SPI S(LD_PIN, DAT_PIN, CLK_PIN, WE_PIN, true);
+#endif
+
 MD_MusicTable T;
 
 char rcvBuf[RCV_BUF_SIZE];  // buffer for characters received from the console
 
 uint16_t timePlay = 200;    // note playing time in ms
+uint16_t volume = MD_SN76489::VOL_MAX; // note playing volume
 uint8_t channel = 0;        // Channel being exercised
 
 MD_SN76489::adsrEnvelope_t adsr[MD_SN76489::MAX_CHANNELS];
@@ -37,12 +56,12 @@ void help(void)
   Serial.print(F("\n"));
   Serial.print(F("\nIb\tSet Invert ADSR (invert b=1, noninvert b=0)"));
   Serial.print(F("\nAt\tSet Attack time to t ms"));
-  Serial.print(F("\nMv\tSet Volume Max level to v volume [0..15]"));
   Serial.print(F("\nDt\tSet Decay time to t ms"));
-  Serial.print(F("\nSv\tSet Sustain level to v volume [0..15]"));
+  Serial.print(F("\nSv\tSet Sustain delta level to v units [0..15]"));
   Serial.print(F("\nRt\tSet Release time to t ms"));
   Serial.print(F("\n"));
   Serial.print(F("\nCn\tSet channel to n ([0..2] for note, 3 for noise)"));
+  Serial.print(F("\nVv\tSet channel volume to v [0..15]"));  
   Serial.print(F("\nTt\tSet play time duration to t ms"));
   Serial.print(F("\nNm\tPlay MIDI Note m"));
   Serial.print(F("\nOtf\tPlay Noise sound type t [P,W] freq f [0..2]"));
@@ -55,16 +74,15 @@ void help(void)
 
 void showADSR(void)
 {
-  Serial.print(F("\n\nChan\tInv\tTa\tVmax\tTd\tVs\tTr\n"));
+  Serial.print(F("\n\nChan\tInv\tTa\tTd\tdVs\tTr\n"));
   for (uint8_t i = 0; i < MD_SN76489::MAX_CHANNELS; i++)
   {
-    Serial.print(i);              Serial.print(F("\t"));
-    Serial.print(adsr[i].invert); Serial.print(F("\t"));
-    Serial.print(adsr[i].Ta);     Serial.print(F("\t"));
-    Serial.print(adsr[i].Vmax);   Serial.print(F("\t"));
-    Serial.print(adsr[i].Td);     Serial.print(F("\t"));
-    Serial.print(adsr[i].Vs);     Serial.print(F("\t"));
-    Serial.print(adsr[i].Tr);     Serial.print(F("\t"));
+    Serial.print(i);               Serial.print(F("\t"));
+    Serial.print(adsr[i].invert);  Serial.print(F("\t"));
+    Serial.print(adsr[i].Ta);      Serial.print(F("\t"));
+    Serial.print(adsr[i].Td);      Serial.print(F("\t"));
+    Serial.print(adsr[i].deltaVs); Serial.print(F("\t"));
+    Serial.print(adsr[i].Tr);      Serial.print(F("\t"));
     Serial.print(F("\n"));
   }
   Serial.print(F("\n"));
@@ -153,7 +171,7 @@ void processUI(void)
           Serial.print(F(") @ "));
           Serial.print(f);
           Serial.print(F("Hz"));
-          S.note(channel, f, timePlay);
+          S.note(channel, f, volume, timePlay);
         }
       }
       break;
@@ -202,6 +220,14 @@ void processUI(void)
       }
       break;
 
+    case 'V':   // Channel Volume
+      volume = getNum(idx);
+      if (volume > MD_SN76489::VOL_MAX)
+        volume = MD_SN76489::VOL_MAX;
+      Serial.print("\n>Volume ");
+      Serial.print(volume);
+      break;
+
     case 'T':   // time duration
     {
       timePlay = getNum(idx);
@@ -226,22 +252,16 @@ void processUI(void)
       Serial.print(adsr[channel].Ta);
       break;
 
-    case 'M':   // Attack Vmax
-      adsr[channel].Vmax = getNum(idx);
-      Serial.print("\n>Vmax ");
-      Serial.print(adsr[channel].Vmax);
-      break;
-
     case 'D':   // Decay ms
       adsr[channel].Td = getNum(idx);
       Serial.print("\n>Td ");
       Serial.print(adsr[channel].Td);
       break;
 
-    case 'S':   // Sustain Vs
-      adsr[channel].Vs = getNum(idx);
-      Serial.print("\n>Vs ");
-      Serial.print(adsr[channel].Vs);
+    case 'S':   // Sustain deltaVs
+      adsr[channel].deltaVs = getNum(idx);
+      Serial.print("\n>deltaVs ");
+      Serial.print(adsr[channel].deltaVs);
       break;
 
     case 'R':   // Release ms
@@ -260,12 +280,12 @@ void setup(void)
   for (uint8_t i = 0; i < MD_SN76489::MAX_CHANNELS; i++)
   {
     adsr[i].invert = false;
-    adsr[i].Vmax = MD_SN76489::VOL_MAX;
-    adsr[i].Vs = MD_SN76489::VOL_MAX - 3;
+    adsr[i].deltaVs = 3;
     adsr[i].Ta = 20;
     adsr[i].Td = 30;
     adsr[i].Tr = 50;
     S.setADSR(i, &adsr[i]);
+    S.setVolume(i, MD_SN76489::VOL_MAX);
   };
 
   Serial.print(F("\n[MD_SN76489 ADSR Envelope]"));

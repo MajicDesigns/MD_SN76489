@@ -410,6 +410,11 @@ void MD_SN76489::setNoise(noiseType_t noise)
     setVolume(NOISE_CHANNEL, 0);
 }
 
+void MD_SN76489::send(uint8_t data)
+{
+  DEBUGX("\nVIRTUAL send of byte 0x", data);
+}
+
 void MD_SN76489::startClock(void)
 // HARDWARE DEPENDENT CODE!!
 {

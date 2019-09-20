@@ -13,16 +13,28 @@
 #include <MD_SN76489.h>
 #include <MD_MusicTable.h>
 
+// Define if we are using a direct or SPI interface to the sound IC
+// 1 = use direct, 0 = use SPI
+#ifndef USE_DIRECT
+#define USE_DIRECT 1
+#endif
+
 // Hardware Definitions ---------------
-// All the pins connected to D0-D7 on the IC, in sequential order 
+#if USE_DIRECT
+// All the pins directly connected to D0-D7 on the IC, in sequential order 
 // so that pin D_PIN[0] is connected to D0, D_PIN[1] to D1, etc.
 const uint8_t D_PIN[] = { A0, A1, A2, A3, 4, 5, 6, 7 };
+#else
+// Define the SPI related pins
+const uint8_t LD_PIN = 10;
+const uint8_t DAT_PIN = 11;
+const uint8_t CLK_PIN = 13;
+#endif
 const uint8_t WE_PIN = 8;     // Arduino pin connected to the IC WE pin
 const uint8_t MAX_SND_CHAN = MD_SN76489::MAX_CHANNELS - 1;
 
 // SD chip select pin for SPI comms.
-// Default SD chip select is the SPI SS pin (10 on Uno, 53 on Mega).
-const uint8_t SD_SELECT = SS;
+const uint8_t SD_SELECT = 9;
 
 // Miscellaneous
 const uint8_t RCV_BUF_SIZE = 20;      // UI character buffer size
@@ -31,8 +43,12 @@ void(*hwReset) (void) = 0;            // declare reset function @ address 0
 // Global Data ------------------------
 SdFat SD;
 MD_MIDIFile SMF;
-MD_SN76489 S(D_PIN, WE_PIN, true);
 MD_MusicTable T;
+#if USE_DIRECT
+MD_SN76489_Direct S(D_PIN, WE_PIN, true);
+#else
+MD_SN76489_SPI S(LD_PIN, DAT_PIN, CLK_PIN, WE_PIN, true);
+#endif
 
 bool printMidiStream = false;   // flag to print the real time midi stream
 char rcvBuf[RCV_BUF_SIZE];  // buffer for characters received from the console

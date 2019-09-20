@@ -15,7 +15,21 @@
 #include <MD_MusicTable.h>          // MIDI notes information
 #include "MD_SN76489_RTTTL_Player.h" // RTTL song data in a separate file
 
+// Define if we are using a direct or SPI interface to the sound IC
+// 1 = use direct, 0 = use SPI
+#ifndef USE_DIRECT
+#define USE_DIRECT 1
+#endif
+
+// Define if we are playing with harmonics just single notes
+// Additional channels will play 2x and 3x the note frequency
+#ifndef USE_HARMONICS
+#define USE_HARMONICS 1
+#endif
+
+#ifndef DEBUG
 #define DEBUG 0
+#endif
 
 #if DEBUG
 #define PRINT(s,v)  { Serial.print(F(s)); Serial.print(v); }
@@ -29,21 +43,34 @@
 #define PRINTC(c)
 #endif
 
+
 // Hardware Definitions ---------------
-// All the pins connected to D0-D7 on the IC, in sequential order 
+#if USE_DIRECT
+// All the pins directly connected to D0-D7 on the IC, in sequential order 
 // so that pin D_PIN[0] is connected to D0, D_PIN[1] to D1, etc.
 const uint8_t D_PIN[] = { A0, A1, A2, A3, 4, 5, 6, 7 };
-
+#else
+// Define the SPI related pins
 const uint8_t LD_PIN = 10;
 const uint8_t DAT_PIN = 11;
 const uint8_t CLK_PIN = 13;
-
+#endif
 const uint8_t WE_PIN = 8;     // Arduino pin connected to the IC WE pin
-const uint8_t PLAY_CHAN = 1;  // Channel being exercised
+
+const uint8_t PLAY_CHAN = 0;    // Main playing channel
+const uint8_t PLAY_VOL = MD_SN76489::VOL_MAX;
+#if USE_HARMONICS
+const uint8_t PLAY_HARM1 = 1;  // Harmonics channel 1
+const uint8_t PLAY_HARM2 = 2;  // Harmonics channel 2
+const uint8_t HARM_VOL = PLAY_VOL - 3; // HArmincs volume lower by this much from main volume
+#endif
 
 // Global Data ------------------------
-//MD_SN76489_Direct S(D_PIN, WE_PIN, true);
+#if USE_DIRECT
+MD_SN76489_Direct S(D_PIN, WE_PIN, true);
+#else
 MD_SN76489_SPI S(LD_PIN, DAT_PIN, CLK_PIN, WE_PIN, true);
+#endif
 MD_MusicTable T;
 
 // values for the current RTTL string
@@ -274,7 +301,11 @@ void loop(void)
           PRINT(" @ ", f);
           PRINT("Hz for ", playDuration);
           PRINTS("ms");
-          S.note(PLAY_CHAN, f, MD_SN76489::VOL_MAX, playDuration);
+          S.note(PLAY_CHAN, f, PLAY_VOL, playDuration);
+#if USE_HARMONICS
+          S.note(PLAY_HARM1, f * 2, HARM_VOL, playDuration);
+          S.note(PLAY_HARM2, f * 3, HARM_VOL, playDuration);
+#endif
         }
         PRINTS("\n-->PLAYING to WAIT_FOR_CHAN");
         state = WAIT_FOR_CHAN;

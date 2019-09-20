@@ -28,9 +28,9 @@ void MD_SN76489_SPI::send(uint8_t data)
 
   // Send out the data
   digitalWrite(_ld, LOW); // load data
-  shiftOut(_dat, _clk, LSBFIRST, data); // send register
+  shiftOut(_dat, _clk, MSBFIRST, data); // send register
   digitalWrite(_ld, HIGH);
-
+  
   // Toggle !WE LOW then HIGH to latch it in the SN76489 IC
   digitalWrite(_we, LOW);
   delayMicroseconds(10);    // 4Mhz clock means 32 cycles for load are about 8us

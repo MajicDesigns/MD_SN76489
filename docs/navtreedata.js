@@ -24,13 +24,13 @@ var NAVTREE =
 [
   [ "MD_SN76489 Library", "index.html", [
     [ "SN76489 Sound Generator Library", "index.html", null ],
-    [ "Support the Library", "page_donation.html", null ],
-    [ "Copyright", "page_copyright.html", null ],
     [ "Revision History", "page_revision_history.html", null ],
     [ "Hardware Connections", "page_hardware.html", null ],
     [ "Using the Library", "page_library.html", null ],
     [ "ADSR Envelope", "page_a_d_s_r.html", null ],
     [ "Compiler Switches", "page_compile_switch.html", null ],
+    [ "Support the Library", "page_donation.html", null ],
+    [ "Copyright", "page_copyright.html", null ],
     [ "Classes", "annotated.html", [
       [ "Class List", "annotated.html", "annotated_dup" ],
       [ "Class Index", "classes.html", null ],

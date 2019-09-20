@@ -19,7 +19,7 @@ var class_m_d___s_n76489 =
     [ "noise", "class_m_d___s_n76489.html#a5e1bfa8c2b1fe43c8bbe55b528312524", null ],
     [ "note", "class_m_d___s_n76489.html#a5ae0594648ea60fc04a82cefce882266", null ],
     [ "play", "class_m_d___s_n76489.html#a77d178a079bd80c67abc7d7da2676b90", null ],
-    [ "send", "class_m_d___s_n76489.html#a3876cfbfe08b8dbe5275a64f36f69a0c", null ],
+    [ "send", "class_m_d___s_n76489.html#a78783e9697f98992dd57be6bcdb8ddf1", null ],
     [ "setADSR", "class_m_d___s_n76489.html#ad609aad23bfebc52e93abc0f1a8f6509", null ],
     [ "setADSR", "class_m_d___s_n76489.html#ab82882382dec0f0c07cb55ed785db822", null ],
     [ "setFrequency", "class_m_d___s_n76489.html#ad10b1c905e3bdd0c66106d9642b08f81", null ],
