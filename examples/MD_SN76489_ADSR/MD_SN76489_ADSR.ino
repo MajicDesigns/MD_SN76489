@@ -4,11 +4,13 @@
 // Input ADSR parameters on the serial monitor and test their effect.
 //
 // Library Dependencies
-// MusicTable library located at https://github.com/MajicDesigns/MD_MusicTable
+// MD_MusicTable library located at https://github.com/MajicDesigns/MD_MusicTable
+// MD_cmdProcessor library located at https://github.com/MajicDesigns/MD_cmdProcessor
 //
 
 #include <MD_SN76489.h>
 #include <MD_MusicTable.h>
+#include <MD_cmdProcessor.h>
 
 // Define if we are using a direct or SPI interface to the sound IC
 // 1 = use direct, 0 = use SPI
@@ -51,28 +53,163 @@ uint8_t channel = 0;        // Channel being exercised
 MD_SN76489::adsrEnvelope_t adsr[MD_SN76489::MAX_CHANNELS];
 
 // Code -------------------------------
-void help(void)
+void handlerHelp(char* param); // function prototype only
+
+char *getNum(uint16_t &n, char *psz)
 {
-  Serial.print(F("\n"));
-  Serial.print(F("\nIb\tSet Invert ADSR (invert b=1, noninvert b=0)"));
-  Serial.print(F("\nAt\tSet Attack time to t ms"));
-  Serial.print(F("\nDt\tSet Decay time to t ms"));
-  Serial.print(F("\nSv\tSet Sustain delta level to v units [0..15]"));
-  Serial.print(F("\nRt\tSet Release time to t ms"));
-  Serial.print(F("\n"));
-  Serial.print(F("\nCn\tSet channel to n ([0..2] for note, 3 for noise)"));
-  Serial.print(F("\nVv\tSet channel volume to v [0..15]"));  
-  Serial.print(F("\nTt\tSet play time duration to t ms"));
-  Serial.print(F("\nNm\tPlay MIDI Note m"));
-  Serial.print(F("\nOtf\tPlay Noise sound type t [P,W] freq f [0..2]"));
-  Serial.print(F("\n"));
-  Serial.print(F("\nP\tShow current ADSR parameters"));
-  Serial.print(F("\nZ\tSoftware reset"));
-  Serial.print(F("\nH,?\tShow this help text"));
-  Serial.print(F("\n"));
+  n = 0;
+
+  while (*psz >= '0' && *psz <= '9')
+  {
+    n = (n * 10) + (*psz - '0');
+    psz++;
+  }
+  
+  if (*psz != '\0') psz--;
+  
+  return(psz);
 }
 
-void showADSR(void)
+void handlerZ(char* param) { hwReset(); }
+      
+void handlerN(char *param)
+// Play note
+{
+  uint16_t midiNote;
+
+  getNum(midiNote, param);
+
+  if (timePlay <= adsr[channel].Ta + adsr[channel].Td + adsr[channel].Tr)
+    timePlay = adsr[channel].Ta + adsr[channel].Td + adsr[channel].Tr;
+  if (T.findId(midiNote));
+  {
+    uint16_t f = (uint16_t)(T.getFrequency() + 0.5);  // round it up
+    char buf[10];
+
+    Serial.print(F("\n>Play "));
+    Serial.print(midiNote);
+    Serial.print(" (");
+    Serial.print(T.getName(buf, sizeof(buf)));
+    Serial.print(F(") @ "));
+    Serial.print(f);
+    Serial.print(F("Hz"));
+    S.note(channel, f, volume, timePlay);
+  }
+}
+
+void handlerO(char *param)
+{
+  MD_SN76489::noiseType_t n = MD_SN76489::PERIODIC_0;
+
+  switch (toupper(param[0]))
+  {
+  case 'P':
+    switch (param[1])
+    {
+    case '0': n = MD_SN76489::PERIODIC_0; break;
+    case '1': n = MD_SN76489::PERIODIC_1; break;
+    case '2': n = MD_SN76489::PERIODIC_2; break;
+    }
+    break;
+
+  case 'W':
+    switch (param[1])
+    {
+    case '0': n = MD_SN76489::WHITE_0; break;
+    case '1': n = MD_SN76489::WHITE_1; break;
+    case '2': n = MD_SN76489::WHITE_2; break;
+    }
+    break;
+  }
+
+  if (timePlay <= adsr[channel].Ta + adsr[channel].Td + adsr[channel].Tr)
+    timePlay = adsr[channel].Ta + adsr[channel].Td + adsr[channel].Tr;
+
+  Serial.print(F("\n>Noise "));
+  Serial.print(n);
+  Serial.print(F(" for "));
+  Serial.print(timePlay);
+  Serial.print(F("ms"));
+  S.noise(n, volume, timePlay);
+}
+
+void handlerC(char *param)
+// set channel
+{
+  uint16_t n;
+  
+  getNum(n, param);
+
+  if (n < MD_SN76489::MAX_CHANNELS) channel = n;
+  Serial.print("\n>Channel ");
+  Serial.print(channel);
+}
+
+void handlerV(char* param)
+// Channel Volume
+{
+  getNum(volume, param);
+  if (volume > MD_SN76489::VOL_MAX)
+    volume = MD_SN76489::VOL_MAX;
+  Serial.print("\n>Volume ");
+  Serial.print(volume);
+}
+
+void handlerT(char *param)
+// time duration
+{
+  getNum(timePlay, param);
+  Serial.print("\n>Time ");
+  Serial.print(timePlay);
+}
+
+void handlerI(char* param)
+// Invert true/false
+{
+  uint16_t n;
+
+  getNum(n, param);
+  adsr[channel].invert = (n != 0);
+  Serial.print("\n>Invert ");
+  Serial.print(adsr[channel].invert);
+}
+      
+void handlerA(char* param)
+// Attack ms
+{
+  getNum(adsr[channel].Ta, param);
+  Serial.print("\n>Ta ");
+  Serial.print(adsr[channel].Ta);
+}
+
+void handlerD(char* param)
+// Decay ms
+{
+  getNum(adsr[channel].Td, param);
+  Serial.print("\n>Td ");
+  Serial.print(adsr[channel].Td);
+}
+
+void handlerS(char* param)
+// Sustain deltaVs
+{
+  uint16_t n;
+
+  getNum(n, param);
+  adsr[channel].deltaVs = n;
+  Serial.print("\n>deltaVs ");
+  Serial.print(adsr[channel].deltaVs);
+}
+
+void handlerR(char *param)
+// Release ms
+{
+  getNum(adsr[channel].Tr, param);
+  Serial.print("\n>Tr ");
+  Serial.print(adsr[channel].Tr);
+}
+
+void handlerP(char* param)
 {
   Serial.print(F("\n\nChan\tInv\tTa\tTd\tdVs\tTr\n"));
   for (uint8_t i = 0; i < MD_SN76489::MAX_CHANNELS; i++)
@@ -88,190 +225,28 @@ void showADSR(void)
   Serial.print(F("\n"));
 }
 
-bool recvLine(void) 
+
+const MD_cmdProcessor::cmdItem_t PROGMEM cmdTable[] =
 {
-  const char endMarker = '\n'; // end of the Serial input line
-  static byte ndx = 0;
-  char c;
-  bool b = false;        // true when we have a complete line
+  { "i", handlerI,   "b",  "Set Invert ADSR (invert b=1, noninvert b=0)" },
+  { "a", handlerA,   "t",  "Set Attack time to t ms" },
+  { "d", handlerD,   "t",  "Set Decay time to t ms" },
+  { "s", handlerS,   "v",  "Set Sustain delta level to v units [0..15]" },
+  { "r", handlerR,   "t",  "Set Release time to t ms" },
+  { "c", handlerC,   "n",  "Set channel to n ([0..2] for note, 3 for noise)" },
+  { "v", handlerV,   "v",  "Set channel volume to v [0..15]" },
+  { "t", handlerT,   "t",  "Set play time duration to t ms" },
+  { "n", handlerN,   "m",  "Play MIDI Note m" },
+  { "o", handlerO,   "tf", "Play Noise sound type t [P,W] freq f [0..2]" },
+  { "p", handlerP,    "",  "Show current ADSR parameters" },
+  { "z", handlerZ,    "",  "Software reset" },
+  { "h", handlerHelp, "",  "Show this help" },
+  { "?", handlerHelp, "",  "Show thie help" },
+};
 
-  while (Serial.available() && !b) // process all available characters before eoln
-  {
-    c = Serial.read();
-    if (c != endMarker) // is the character not the end of the string terminator?
-    {
-      if (!isspace(c))  // filter out all the whitespace
-      {
-        rcvBuf[ndx] = toupper(c); // save the character
-        ndx++;
-        if (ndx >= RCV_BUF_SIZE) // handle potential buffer overflow
-          ndx--;
-        rcvBuf[ndx] = '\0';       // always maintain a valid string
-      }
-    }
-    else
-    {
-      ndx = 0;          // reset buffer to receive the next line
-      b = true;         // return this flag
-    }
-  }
-  return(b);
-}
+MD_cmdProcessor CP(Serial, cmdTable, ARRAY_SIZE(cmdTable));
 
-uint16_t getNum(uint16_t &idx)
-{
-  uint16_t n = 0;
-  
-  while (rcvBuf[idx] >= '0' && rcvBuf[idx] <= '9')
-  {
-    n = (n * 10) + (rcvBuf[idx] - '0');
-    idx++;
-  }
-  
-  if (rcvBuf[idx] != '\0') idx--;
-  
-  return(n);
-}
-
-void processUI(void)
-{
-  if (!recvLine())
-    return;
-
-  // we have a line to process
-  uint16_t idx = 0;
-  while (rcvBuf[idx] != '\0')
-  {
-    switch (rcvBuf[idx++])
-    {
-    case 'H':   // help text
-    case '?':
-      help();
-      break;
-
-    case 'Z':   // resets
-      hwReset();
-      break;
-      
-    case 'N':   // Play note
-      {
-        uint8_t midiNote = getNum(idx);
-
-        if (timePlay <= adsr[channel].Ta + adsr[channel].Td + adsr[channel].Tr)
-          timePlay = adsr[channel].Ta + adsr[channel].Td + adsr[channel].Tr;
-        if (T.findId(midiNote));
-        {
-          uint16_t f = (uint16_t)(T.getFrequency() + 0.5);  // round it up
-          char buf[10];
-
-          Serial.print(F("\n>Play "));
-          Serial.print(midiNote);
-          Serial.print(" (");
-          Serial.print(T.getName(buf, sizeof(buf)));
-          Serial.print(F(") @ "));
-          Serial.print(f);
-          Serial.print(F("Hz"));
-          S.note(channel, f, volume, timePlay);
-        }
-      }
-      break;
-
-    case 'O': 
-    {
-      MD_SN76489::noiseType_t n = MD_SN76489::PERIODIC_0;
-
-      switch (rcvBuf[idx++])
-      {
-        case 'P':
-          switch (rcvBuf[idx++])
-          {
-            case '0': n = MD_SN76489::PERIODIC_0; break;
-            case '1': n = MD_SN76489::PERIODIC_1; break;
-            case '2': n = MD_SN76489::PERIODIC_2; break;
-          }
-          break;
-
-        case 'W':
-          switch (rcvBuf[idx++])
-          {
-            case '0': n = MD_SN76489::WHITE_0; break;
-            case '1': n = MD_SN76489::WHITE_1; break;
-            case '2': n = MD_SN76489::WHITE_2; break;
-          }
-          break;
-      }
-
-      if (timePlay <= adsr[channel].Ta + adsr[channel].Td + adsr[channel].Tr)
-        timePlay = adsr[channel].Ta + adsr[channel].Td + adsr[channel].Tr;
-
-      Serial.print(F("\n>Noise "));
-      Serial.print(n);
-      S.noise(n, timePlay);
-    }
-    break;
-
-    case 'C':   // set channel
-      {
-        uint8_t n = getNum(idx);
-
-        if (n < MD_SN76489::MAX_CHANNELS) channel = n;
-        Serial.print("\n>Channel ");
-        Serial.print(channel);
-      }
-      break;
-
-    case 'V':   // Channel Volume
-      volume = getNum(idx);
-      if (volume > MD_SN76489::VOL_MAX)
-        volume = MD_SN76489::VOL_MAX;
-      Serial.print("\n>Volume ");
-      Serial.print(volume);
-      break;
-
-    case 'T':   // time duration
-    {
-      timePlay = getNum(idx);
-      Serial.print("\n>Time ");
-      Serial.print(timePlay);
-    }
-    break;
-
-    case 'P':   // Print ADSR
-      showADSR();
-      break;
-
-    case 'I':   // Invert true/false
-      adsr[channel].invert = (getNum(idx) != 0);
-      Serial.print("\n>Invert ");
-      Serial.print(adsr[channel].invert);
-      break;
-      
-    case 'A':   // Attack ms
-      adsr[channel].Ta = getNum(idx);
-      Serial.print("\n>Ta ");
-      Serial.print(adsr[channel].Ta);
-      break;
-
-    case 'D':   // Decay ms
-      adsr[channel].Td = getNum(idx);
-      Serial.print("\n>Td ");
-      Serial.print(adsr[channel].Td);
-      break;
-
-    case 'S':   // Sustain deltaVs
-      adsr[channel].deltaVs = getNum(idx);
-      Serial.print("\n>deltaVs ");
-      Serial.print(adsr[channel].deltaVs);
-      break;
-
-    case 'R':   // Release ms
-      adsr[channel].Tr = getNum(idx);
-      Serial.print("\n>Tr ");
-      Serial.print(adsr[channel].Tr);
-      break;
-    }
-  }
-}
+void handlerHelp(char* param) { CP.help(); }
 
 void setup(void)
 {
@@ -288,13 +263,15 @@ void setup(void)
     S.setVolume(i, MD_SN76489::VOL_MAX);
   };
 
+  CP.begin();
+
   Serial.print(F("\n[MD_SN76489 ADSR Envelope]"));
   Serial.print(F("\nEnsure serial monitor line ending is set to newline."));
-  help();
+  handlerHelp(nullptr);
 }
 
 void loop(void)
 {
   S.play();     // run the sound machine every time through loop()
-  processUI();  // check the user input
+  CP.run();     // check the user input
 }

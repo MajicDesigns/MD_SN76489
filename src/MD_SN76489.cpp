@@ -119,7 +119,7 @@ void MD_SN76489::tone(byte chan, uint16_t freq, uint8_t volume, uint16_t duratio
     {
       DEBUGS("on");
       C[chan].frequency = freq;
-      C[chan].volSP = C[chan].volCV = volume;
+      C[chan].volSP = C[chan].volCV = saneVolume(volume);
       C[chan].duration = duration;
       C[chan].playTone = true;
       C[chan].state = TONE_ON;
@@ -145,7 +145,7 @@ void MD_SN76489::note(byte chan, uint16_t freq, uint8_t volume, uint16_t duratio
     {
       DEBUGS("on");
       C[chan].frequency = freq;
-      C[chan].volSP = C[chan].volCV = volume;
+      C[chan].volSP = C[chan].volCV = saneVolume(volume);
       C[chan].duration = calcTs(chan, duration);
       C[chan].playTone = false;
       C[chan].state = NOTE_ON;
@@ -168,7 +168,7 @@ void MD_SN76489::noise(noiseType_t noise, uint8_t volume, uint16_t duration)
     {
       DEBUGS("on");
       C[NOISE_CHANNEL].frequency = noise;
-      C[NOISE_CHANNEL].volSP = C[NOISE_CHANNEL].volCV = volume;
+      C[NOISE_CHANNEL].volSP = C[NOISE_CHANNEL].volCV = saneVolume(volume);
       C[NOISE_CHANNEL].duration = calcTs(NOISE_CHANNEL, duration);
       C[NOISE_CHANNEL].state = NOISE_ON;
     }
@@ -255,7 +255,9 @@ void MD_SN76489::play(void)
         }
         else
         {
-          DEBUG("\n--ATTACK Volume delta ", C[chan].volumeStep);
+          DEBUG("\n--ATTACK Volume delta:", C[chan].volumeStep);
+          DEBUG(" CV:", C[chan].volCV);
+          DEBUG(" SP:", C[chan].volSP);
           // still in ATTACK, just set the volume to the new level
           setCVolume(chan, C[chan].volCV + C[chan].volumeStep);
           C[chan].timeBase += C[chan].timeStep;
@@ -349,6 +351,15 @@ void MD_SN76489::play(void)
   }
 }
 
+uint8_t MD_SN76489::saneVolume(uint8_t v)
+// check and return a volume setting within bounds
+{
+  if (v > VOL_MAX) 
+    v = VOL_MAX;
+
+  return(v);
+}
+
 void MD_SN76489::setCVolume(uint8_t chan, uint8_t v)
 // Set the volume current value for channel and remember the setting
 // Application values are 0-15 for min to max. Attenuator values
@@ -357,7 +368,7 @@ void MD_SN76489::setCVolume(uint8_t chan, uint8_t v)
   DEBUG("\nsetCVolume C", chan);
   DEBUG(" V", v);
 
-  if (v > VOL_MAX) v = VOL_MAX;
+  v = saneVolume(v);
   uint8_t cmd = LATCH_CMD | (chan << 5) | TYPE_VOL | ((0xf - v) & DATA1_MASK);
   DEBUGX(" : 0x", cmd);
   send(cmd);
@@ -371,7 +382,7 @@ void MD_SN76489::setVolume(uint8_t chan, uint8_t v)
 {
   if (chan < MAX_CHANNELS)
   {
-    if (v > VOL_MAX) v = VOL_MAX;
+    v = saneVolume(v);
     setCVolume(chan, v);
     C[chan].volSP = v;
   }

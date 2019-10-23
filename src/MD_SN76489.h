@@ -48,6 +48,10 @@ References
 - Additional technical information from http://www.smspower.org/Development/SN76489
 
 \page pageRevisionHistory Revision History
+xxx 2019 version 1.1.1
+- Added sanity check for volume settings
+- Changed examples to use MD_cmdProcessor library
+
 Sep 2019 version 1.0.0
 - Initial implementation.
 
@@ -260,7 +264,7 @@ rises up to the value specified by the sustain parameter in the decay phase and 
 rise from the sustain amplitude back to maximum amplitude.
 
 The ADSR envelope can be specified using the following parameters:
-- **Attack**: The time interval (Ta) betwen activation and full loudness (Vmax).
+- **Attack**: The time interval (Ta) between activation and full loudness (Vmax).
 - **Decay**: The time interval (Td) for Vmax to drop to the sustain level (Vs).
 - **Sustain**: The constant sound volume (Vs) for the note until it is released.
 - **Release**: The time interval (Tr) for the sound to fade from Vs to 0 when a note ends.
@@ -640,6 +644,7 @@ class MD_SN76489
     // Methods
     void startClock(void);              ///< use the MCU timers to generate 4MHz clock
     void setCVolume(uint8_t chan, uint8_t v);         ///< set current volume level
+    uint8_t saneVolume(uint8_t volume); ///< return a volume setting within bounds
     uint16_t calcTs(uint8_t chan, uint16_t duration); ///< work out the Vs time for this note
 
     // Data

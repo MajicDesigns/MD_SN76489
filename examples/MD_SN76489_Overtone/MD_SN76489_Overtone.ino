@@ -40,22 +40,22 @@ void setup(void)
 
 void loop(void)
 {
-  const uint16_t WAIT_DELAY = 2500;
-  const uint8_t VOL_DELTA = 3;
+  const uint16_t WAIT_DELAY = 1500;
+  const uint8_t VOL_DELTA = 2;
   const uint16_t BASE_FREQ = 440;
 
   S.setVolume(0);
-  delay(WAIT_DELAY);
+  delay(2*WAIT_DELAY);
 
   S.setFrequency(0, BASE_FREQ);
   S.setVolume(0, MD_SN76489::VOL_MAX);
   delay(WAIT_DELAY);
 
-  S.setFrequency(1, BASE_FREQ*2);
-  S.setVolume(1, MD_SN76489::VOL_MAX - VOL_DELTA);
+  S.setFrequency(1, BASE_FREQ * 2);
+  S.setVolume(MD_SN76489::VOL_MAX - VOL_DELTA);
   delay(WAIT_DELAY);
 
-  S.setFrequency(2, BASE_FREQ*3);
-  S.setVolume(2, MD_SN76489::VOL_MAX - VOL_DELTA);
+  S.setFrequency(2, BASE_FREQ * 3);
+  S.setVolume(MD_SN76489::VOL_MAX - (2 * VOL_DELTA));
   delay(WAIT_DELAY);
 }

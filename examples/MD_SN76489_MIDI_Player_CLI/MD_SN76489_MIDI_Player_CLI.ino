@@ -6,12 +6,14 @@
 // SDFat at https://github.com/greiman?tab=repositories
 // MD_MIDIFile at https://github.com/MajicDesigns/MD_MIDIFile
 // MD_MusicTable at https://github.com/MajicDesigns/MD_MusicTable
+// MD_cmdProcessor at https://github.com/MajicDesigns/MD_cmdProcessor
 //
 
 #include <SdFat.h>
 #include <MD_MIDIFile.h>
 #include <MD_SN76489.h>
 #include <MD_MusicTable.h>
+#include <MD_cmdProcessor.h>
 
 // Define if we are using a direct or SPI interface to the sound IC
 // 1 = use direct, 0 = use SPI
@@ -37,7 +39,6 @@ const uint8_t MAX_SND_CHAN = MD_SN76489::MAX_CHANNELS - 1;
 const uint8_t SD_SELECT = 9;
 
 // Miscellaneous
-const uint8_t RCV_BUF_SIZE = 20;      // UI character buffer size
 void(*hwReset) (void) = 0;            // declare reset function @ address 0
 
 // Global Data ------------------------
@@ -51,7 +52,6 @@ MD_SN76489_SPI S(LD_PIN, DAT_PIN, CLK_PIN, WE_PIN, true);
 #endif
 
 bool printMidiStream = false;   // flag to print the real time midi stream
-char rcvBuf[RCV_BUF_SIZE];  // buffer for characters received from the console
 
 struct channelData
 {
@@ -198,25 +198,10 @@ void midiSilence(void)
   S.setVolume(MD_SN76489::VOL_OFF);
 }
 
-void help(void)
+const char* SMFErr(int err)
 {
-  Serial.print(F("\nh,?\thelp"));
-  Serial.print(F("\nf fldr\tset current folder to fldr"));
-  Serial.print(F("\nl\tlist out files in current folder"));
-  Serial.print(F("\np file\tplay the named file"));
-
-  Serial.print(F("\n\n* Sketch Control"));
-  Serial.print(F("\nz s\tsoftware reset"));
-  Serial.print(F("\nz m\tmidi silence"));
-  Serial.print(F("\nz d\tdump the real time midi stream (toggle on/off)"));
-
-  Serial.print(F("\n"));
-}
-
-const char *SMFErr(int err)
-{
-  const char *DELIM_OPEN = "[";
-  const char *DELIM_CLOSE = "]";
+  const char* DELIM_OPEN = "[";
+  const char* DELIM_CLOSE = "]";
 
   static char szErr[30];
   char szFmt[10];
@@ -280,107 +265,74 @@ const char *SMFErr(int err)
   return(szErr);
 }
 
-bool recvLine(void) 
-{
-  const char endMarker = '\n'; // end of the Serial input line
-  static byte ndx = 0;
-  char c;
-  bool b = false;        // true when we have a complete line
+void handlerHelp(char* param); // function prototype only
 
-  while (Serial.available() && !b) // process all available characters before eoln
-  {
-    c = Serial.read();
-    if (c != endMarker) // is the character not the end of the string termintator?
-    {
-      if (!isspace(c))  // filter out all the whitespace
-      {
-        rcvBuf[ndx] = toupper(c); // save the character
-        ndx++;
-        if (ndx >= RCV_BUF_SIZE) // handle potential buffer overflow
-          ndx--;
-        rcvBuf[ndx] = '\0';       // alwaqys maintain a valid string
-      }
-    }
-    else
-    {
-      ndx = 0;          // reset buffer to receive the next line
-      b = true;         // return this flag
-    }
-  }
-  return(b);
+void handlerZS(char *param) { hwReset(); }
+void handlerZM(char *param) { midiSilence(); Serial.print(SMFErr(-1)); }
+void handlerZD(char *param) { printMidiStream = !printMidiStream; Serial.print(SMFErr(-1)); }
+
+void handlerP(char *param)
+// Play
+{
+  int err;
+
+  // clean up current environment
+  SMF.close(); // close old MIDI file
+  midiSilence(); // silence hanging notes
+
+  Serial.print(F("\nRead File: "));
+  Serial.print(param);
+  SMF.setFilename(param); // set filename
+  Serial.print(F("\nSet file : "));
+  Serial.print(SMF.getFilename());
+  err = SMF.load(); // load the new file
+  Serial.print(SMFErr(err));
 }
 
-void processUI(void)
+void handlerF(char *param)
+// set the current folder for MIDI files
 {
-  if (!recvLine())
-    return;
+  Serial.print(F("\nFolder: "));
+  Serial.print(param);
+  SMF.setFileFolder(param); // set folder
+}
 
-  // we have a line to process
-  switch (rcvBuf[0])
+void handlerL(char *param)
+// list the files in the current folder
+{
+  SdFile file;    // iterated file
+
+  SD.vwd()->rewind();
+  while (file.openNext(SD.vwd(), O_READ))
   {
-  case 'H':
-  case '?':
-    help();
-    break;
-
-  case 'Z':   // resets
-    switch (rcvBuf[1])
+    if (file.isFile())
     {
-    case 'S': hwReset(); break;
-    case 'M': midiSilence(); Serial.print(SMFErr(-1)); break;
-    case 'D': printMidiStream = !printMidiStream; Serial.print(SMFErr(-1)); break;
-    }
-    break;
+      char buf[20];
 
-  case 'P': // play
-    {
-      int err;
-
-      // clean up current environment
-      SMF.close(); // close old MIDI file
-      midiSilence(); // silence hanging notes
-
-      Serial.print(F("\nRead File: "));
-      Serial.print(&rcvBuf[1]);
-      SMF.setFilename(&rcvBuf[1]); // set filename
-      Serial.print(F("\nSet file : "));
-      Serial.print(SMF.getFilename());
-      delay(100);
-      err = SMF.load(); // load the new file
-      Serial.print(SMFErr(err));
-    }
-    break;
-
-  case 'F': // set the current folder for MIDI files
-    {
-      Serial.print(F("\nFolder: "));
-      Serial.print(&rcvBuf[1]);
-      SMF.setFileFolder(&rcvBuf[1]); // set folder
-    }
-    break;
-
-  case 'L': // list the files in the current folder
-    {
-      SdFile file;    // iterated file
-
-      SD.vwd()->rewind();
-      while (file.openNext(SD.vwd(), O_READ))
-      {
-        if (file.isFile())
-        {
-          char buf[20];
-
-          file.getName(buf, ARRAY_SIZE(buf));
-          Serial.print(F("\n"));
-          Serial.print(buf);
-        }
-        file.close();
-      }
+      file.getName(buf, ARRAY_SIZE(buf));
       Serial.print(F("\n"));
+      Serial.print(buf);
     }
-    break;
+    file.close();
   }
+  Serial.print(F("\n"));
 }
+
+const MD_cmdProcessor::cmdItem_t PROGMEM cmdTable[] =
+{
+  { "h", handlerHelp, "",    "help" },
+  { "?", handlerHelp, "",    "help" },
+  { "f", handlerF,    "fldr", "set current folder to fldr" },
+  { "l", handlerL,    "",     "list files in current folder" },
+  { "p", handlerP,    "file", "play the named file" },
+  {"zs", handlerZS,   "",     "software reset" },
+  {"zm", handlerZM,   "",     "midi silence" },
+  {"zd", handlerZD,   "",     "dump real time midi stream" },
+};
+
+MD_cmdProcessor CP(Serial, cmdTable, ARRAY_SIZE(cmdTable));
+
+void handlerHelp(char* param) { CP.help(); }
 
 void setup(void) // This is run once at power on
 {
@@ -389,7 +341,7 @@ void setup(void) // This is run once at power on
   Serial.print(F("\nEnsure serial monitor line ending is set to newline."));
 
   // Initialise SN74689
-    S.begin();
+  S.begin();
 
   // Initialize SD
   if (!SD.begin(SD_SELECT, SPI_FULL_SPEED))
@@ -403,8 +355,11 @@ void setup(void) // This is run once at power on
   SMF.setMidiHandler(midiCallback);
   midiSilence(); // Silence any hanging notes
 
+  // initialise command processor
+  CP.begin();
+
   // show the available commands
-  help();
+  handlerHelp(nullptr);
 }
 
 void loop(void)
@@ -416,5 +371,5 @@ void loop(void)
   if (!SMF.isEOF()) 
     SMF.getNextEvent(); // Play MIDI data
 
-  processUI();  // process the User Interface
+  CP.run();  // process the User Interface
 }
