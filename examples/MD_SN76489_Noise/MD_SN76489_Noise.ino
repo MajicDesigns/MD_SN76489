@@ -7,7 +7,7 @@
 #include <MD_SN76489.h>
 
 // Testing options
-#define DURATION_IN_CALL 0 // 1 = duration in function call, 0 = duration managed by application
+#define DURATION_IN_CALL 1 // 1 = duration in function call, 0 = duration managed by application
 
 // Define if we are using a direct or SPI interface to the sound IC
 // 1 = use direct, 0 = use SPI
