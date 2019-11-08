@@ -48,9 +48,10 @@ References
 - Additional technical information from http://www.smspower.org/Development/SN76489
 
 \page pageRevisionHistory Revision History
-xxx 2019 version 1.1.1
+Nov 2019 version 1.1.0
 - Added sanity check for volume settings
 - Changed examples to use MD_cmdProcessor library
+- Added write() method and VGM player example
 
 Sep 2019 version 1.0.0
 - Initial implementation.
@@ -571,6 +572,18 @@ class MD_SN76489
     * the note required timing for the note envelopes.
     */
     void play(void);
+
+   /**
+    * Write a byte directly to the device
+    *
+    * This method should be used with caution, as it bypasses all the checks
+    * and buffering built into the library. It is provided to support applications
+    * that are a collection of register setting to be written to hardware at set 
+    * time intervals (eg, VGM files).
+    *
+    * \param data  the 8 bit data value to write to the device.
+    */
+    inline void write(uint8_t data) { send(data); }
 
    /** @} */
   protected:

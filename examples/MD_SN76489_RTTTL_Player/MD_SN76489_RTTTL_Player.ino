@@ -315,8 +315,8 @@ void loop(void)
     case PAUSE:  // pause note during melody
       if (millis() - timeStart >= playDuration)
       {
-        PRINTS("\n-->PAUSE to PLAYING");
-        state = PLAYING;   // start a new melody
+        PRINTS("\n-->PAUSE to NEXT STATE");
+        state = isEoln() ? WAIT_BETWEEN : PLAYING;
       }
       break;
 
