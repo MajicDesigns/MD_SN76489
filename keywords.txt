@@ -25,6 +25,7 @@ noise	KEYWORD2
 setADSR	KEYWORD2
 isIdle	KEYWORD2
 play	KEYWORD2
+write	KEYWORD2
 
 ######################################
 # Constants (LITERAL1)

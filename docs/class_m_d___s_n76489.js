@@ -27,6 +27,7 @@ var class_m_d___s_n76489 =
     [ "setVolume", "class_m_d___s_n76489.html#a6c1e98e3a2c63cfa181651c9e1629599", null ],
     [ "setVolume", "class_m_d___s_n76489.html#a94903b9f80f216d0d3ac6f90cb1e7e5a", null ],
     [ "tone", "class_m_d___s_n76489.html#ac31d30fa8af020956a2171bf7015f11e", null ],
+    [ "write", "class_m_d___s_n76489.html#a66db4ac9a4917ee9e60d44291428bd84", null ],
     [ "DATA_BITS", "class_m_d___s_n76489.html#ae44d076d2c558c2b634a605fc0ea9836", null ],
     [ "MAX_CHANNELS", "class_m_d___s_n76489.html#a15b806ee4295fbb3201bd5047849f978", null ],
     [ "NOISE_CHANNEL", "class_m_d___s_n76489.html#a470ebeba3c1f5bff498ccfd42a2911c7", null ],
