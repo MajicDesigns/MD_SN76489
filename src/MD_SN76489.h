@@ -48,10 +48,14 @@ References
 - Additional technical information from http://www.smspower.org/Development/SN76489
 
 \page pageRevisionHistory Revision History
+Jan 2020 version 1.1.1
+- Fixed channel 2 exclusion in setFrequency()
+
 Nov 2019 version 1.1.0
 - Added sanity check for volume settings
 - Changed examples to use MD_cmdProcessor library
 - Added write() method and VGM player example
+- Updated RTTTL example to use MD_RTTTLParser library
 
 Sep 2019 version 1.0.0
 - Initial implementation.
@@ -503,7 +507,7 @@ class MD_SN76489
      * Play a noise using ADSR.
      *
      * Output a noise as specified on NOISE_CHANNEL, using the
-     * ADSR envelope curently defined for the channel. If another noise
+     * ADSR envelope currently defined for the channel. If another noise
      * is playing on NOISE_CHANNEL it will be immediately replaced by the
      * new noise.
      *

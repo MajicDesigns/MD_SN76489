@@ -311,7 +311,7 @@ void MD_SN76489::play(void)
       C[chan].timeStep = C[chan].adsr->Tr / (C[chan].volSP - C[chan].adsr->deltaVs);
 
       // volume step direction remains the same as for previous DECAY
-      // but we set this explicitely as NOTE_OFF can happen anytime,
+      // but we set this explicitly as NOTE_OFF can happen anytime,
       // before we finish ATTACK and timeStep is actually set.
       C[chan].volumeStep = C[chan].adsr->invert ? 1 : -1;
 
@@ -401,7 +401,7 @@ void MD_SN76489::setFrequency(uint8_t chan, uint16_t freq)
   DEBUG("\nsetFrequency C", chan);
   DEBUG(" F", freq);
 
-  if (chan < MAX_CHANNELS - 2)    // last channel only does noise
+  if (chan < MAX_CHANNELS - 1)    // last channel only does noise
   {
     uint16_t n = CLOCK_HZ / ((uint32_t)freq << 5);  // <<5 same as *32
 
