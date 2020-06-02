@@ -29,7 +29,7 @@ void MD_SN76489_Direct::send(uint8_t data)
   // Set the data pins to current value
   for (int8_t i = DATA_BITS - 1; i >= 0; i--)
   {
-    uint8_t v = (data & bit(i)) ? HIGH : LOW;
+    uint8_t v = (data & bit(DATA_BITS - i - 1)) ? HIGH : LOW;
     uint8_t p = DATA_BITS - i - 1;
     // DEBUG("[", p);  DEBUG(":", v);  DEBUGS("]");
     digitalWrite(_D[p], v);
